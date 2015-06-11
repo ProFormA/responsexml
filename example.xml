@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<submission-response  >
+    <grader-engine name="" version=""/>
+	<!-- hier vielleicht auch noch ein Feedback für generelle Infos 
+	die die Aufgabe betreffen und nicht einen einzelnen Test?!-->
+
+    <result max-score="" validity="">
+	<!-- max-score und validity sind optional -->
+        <score></score>
+		oder
+        <passed></passed>
+    </result>
+	
+    <tests>
+	
+        <test id="" name="">            
+            <!-- description optional  -->
+			<test-description></test-description>
+            <result max-score="" validity="">
+                <score></score>
+				oder
+                <passed></passed>
+            </result>
+            <test-feedbacks>
+			
+                <feedback audience="teacher|student" level="" type="html|code|text">
+                    <!--bei HTML erlaubt sind alle tags wie im Austauschformat , sowie
+                    zusätzlich erlaubt sind inline Bilder!!! (mehr nicht) via data-url
+					Frage hier lieber auch "file" benutzen, da base64 in der richtigen Codierung ist und bleibt?
+                    -->
+                </feedback>                
+            </test-feedbacks>
+        </test>
+    </tests>
+    <attachements>
+        <attachement name="Jedec Datei" audience="student" >
+			<!-- mimetype wahrscheinlich nicht notwendig-->
+            <file mimetype="" name="">
+                <content>foushdfOIDJADOHSAF92214lDSKNÄFDASFOU</content>
+            </file>
+            oder
+            <external-resource>
+            <!-- Inhalt noch unklar, Links URNs ... ? -->
+            </external-resource>
+        </attachement>
+    </attachements>
+</submission-response>
