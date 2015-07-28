@@ -32,8 +32,8 @@
             </test-feedbacks>
         </test>
     </tests>
-    <attachements>
-        <attachement name="Jedec Datei" audience="student" >
+    <attachments>
+        <attachment name="Jedec Datei" audience="student" >
 			<!-- mimetype wahrscheinlich nicht notwendig-->
             <file mimetype="" name="">
                 <content>foushdfOIDJADOHSAF92214lDSKNÄFDASFOU</content>
@@ -42,6 +42,6 @@
             <external-resource>
             <!-- Inhalt noch unklar, Links URNs ... ? -->
             </external-resource>
-        </attachement>
-    </attachements>
+        </attachment>
+    </attachments>
 </submission-response>
