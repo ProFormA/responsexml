@@ -1,0 +1,62 @@
+default namespace = 'urn:proforma:response:v0.1'
+
+element submission-response {
+    element grader-engine {
+        attribute name { text },
+        attribute version { text }
+    },
+
+    element result {
+        element score { xsd:decimal { minInclusive='0.0' maxInclusive='1.0' } },
+        element validity { xsd:decimal { minInclusive='0.0' maxInclusive='1.0' } }?
+    },
+
+    element tests {
+        element test {
+            attribute id { xsd:ID },
+
+            element title { text },
+            element result {
+                element score { xsd:decimal { minInclusive='0.0' maxInclusive='1.0' } },
+                element validity { xsd:decimal { minInclusive='0.0' maxInclusive='1.0' } }?
+            },
+
+            element test-feedbacks {
+                element feedback {
+                    attribute audience { xsd:string { pattern='teacher|student' } },
+                    attribute level { xsd:string { pattern='debug|info|warn|error' } },
+                    attribute class { xsd:string { pattern='error|failure|output' } },
+                    attribute type { text },
+                    text
+                }*
+            },
+
+            element filerefs {
+                element fileref {
+                    attribute refid { xsd:ID }
+                }*
+            }?
+        }*
+    },
+
+    element attachments {
+        element attachment {
+            attribute id { xsd:ID },
+            attribute title { text },
+            attribute audience { xsd:string { pattern='teacher|student' } },
+
+            (
+                element file {
+                    attribute type { text },
+                    attribute name { text },
+                    element content { xsd:base64Binary }
+                }
+            |
+                element external-resource {
+                    attribute type { text },
+                    text
+                }
+            )
+        }*
+    }
+}
