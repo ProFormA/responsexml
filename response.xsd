@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="urn:proforma:response:v0.1" xmlns:ns1="urn:proforma:response:v0.1">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="urn:proforma:response:v0.2" xmlns:ns1="urn:proforma:response:v0.2">
   <xs:element name="submission-response">
     <xs:complexType>
       <xs:sequence>
@@ -52,14 +52,16 @@
       <xs:sequence>
         <xs:element ref="ns1:title"/>
         <xs:element ref="ns1:result"/>
-        <xs:element ref="ns1:test-feedbacks"/>
+        <xs:element ref="ns1:feedbacks"/>
         <xs:element minOccurs="0" ref="ns1:filerefs"/>
       </xs:sequence>
-      <xs:attribute name="id" use="required" type="xs:ID"/>
+      <xs:attribute name="id" use="required" type="xs:string"/>
+      <!-- changed from xs:ID to xs:string. In case of multiple sub-tests (sub-id) we need to use one id > 1 -->
+      <xs:attribute name="sub-id" use="optional" type="xs:string"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="title" type="xs:string"/>
-  <xs:element name="test-feedbacks">
+  <xs:element name="feedbacks">
     <xs:complexType>
       <xs:sequence>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="ns1:feedback"/>
@@ -72,6 +74,7 @@
         <xs:simpleType>
           <xs:restriction base="xs:string">
             <xs:pattern value="teacher|student"/>
+            <!-- teacher should see any information which is addressed to students -->
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
@@ -101,7 +104,16 @@
   </xs:element>
   <xs:element name="fileref">
     <xs:complexType>
-      <xs:attribute name="refid" use="required" type="xs:ID"/>
+      <xs:attribute name="title" use="required"/>
+      <xs:attribute name="audience" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:pattern value="teacher|student"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="refid" type="xs:IDREF"/>
+      <xs:attribute name="href"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="attachments">
@@ -113,34 +125,13 @@
   </xs:element>
   <xs:element name="attachment">
     <xs:complexType>
-      <xs:choice>
-        <xs:element ref="ns1:file"/>
-        <xs:element ref="ns1:external-resource"/>
-      </xs:choice>
-      <xs:attribute name="id" use="required" type="xs:ID"/>
-      <xs:attribute name="title" use="required"/>
-      <xs:attribute name="audience" use="required">
-        <xs:simpleType>
-          <xs:restriction base="xs:string">
-            <xs:pattern value="teacher|student"/>
-          </xs:restriction>
-        </xs:simpleType>
-      </xs:attribute>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="file">
-    <xs:complexType>
       <xs:sequence>
         <xs:element ref="ns1:content"/>
       </xs:sequence>
+      <xs:attribute name="id" use="required" type="xs:ID"/>
       <xs:attribute name="type" use="required"/>
       <xs:attribute name="name" use="required"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="content" type="xs:base64Binary"/>
-  <xs:element name="external-resource">
-    <xs:complexType mixed="true">
-      <xs:attribute name="type" use="required"/>
-    </xs:complexType>
-  </xs:element>
 </xs:schema>
