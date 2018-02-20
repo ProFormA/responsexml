@@ -1,137 +1,225 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="urn:proforma:response:v0.2" xmlns:ns1="urn:proforma:response:v0.2">
-  <xs:element name="submission-response">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element ref="ns1:grader-engine"/>
-        <xs:element ref="ns1:result"/>
-        <xs:element ref="ns1:tests"/>
-        <xs:element ref="ns1:attachments"/>
-      </xs:sequence>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	elementFormDefault="qualified" targetNamespace="urn:proforma:response:v0.3"
+	xmlns="urn:proforma:response:v0.3">
+	<xs:element name="submission-response">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="grader-engine" type="grader-engine" />
+				<xs:element name="overall-result" type="result" />
+				<!-- Feedback, that cannot be mapped to individual tests.
+				    E. g. invalid submission format, illegal task.xml, 
+				    etc. -->
+				<xs:element name="submission-feedbacks" type="feedbacks" />
+				<xs:choice>
+					<xs:element name="merged-test-feedbacks" type="feedbacks" />
+					<xs:element name="separate-tests" type="tests" />
+				</xs:choice>
+				<xs:element name="attachments" type="attachments" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:complexType name="grader-engine">
+		<xs:attribute name="name" use="required" />
+		<xs:attribute name="version" use="required" />
+	</xs:complexType>
+
+
+	<xs:complexType name="result">
+		<xs:sequence>
+			<xs:element name="score" type="score" />
+			<xs:element name="validity" minOccurs="0" type="validity" />
+		</xs:sequence>
+	</xs:complexType>
+
+
+	<xs:simpleType name="score">
+		<xs:restriction base="xs:decimal">
+			<xs:minInclusive value="0.0" />
+			<xs:maxInclusive value="1.0" />
+		</xs:restriction>
+	</xs:simpleType>
+
+
+	<xs:simpleType name="validity">
+		<xs:restriction base="xs:decimal">
+			<xs:minInclusive value="0.0" />
+			<xs:maxInclusive value="1.0" />
+		</xs:restriction>
+	</xs:simpleType>
+
+
+	<xs:complexType name="tests">
+		<xs:sequence>
+			<xs:element name="test" minOccurs="0" maxOccurs="unbounded"
+				type="test" />
+		</xs:sequence>
+	</xs:complexType>
+
+
+	<xs:complexType name="test">
+		<xs:sequence>
+			<xs:element name="result" type="result" />
+			<xs:element name="feedbacks" type="feedbacks" />
+		</xs:sequence>
+		<xs:attribute name="id" use="required" type="xs:string" />
+		<!-- changed from xs:ID to xs:string. In case of multiple sub-tests (sub-id) 
+			we need to use one id > 1 -->
+		<xs:attribute name="subid" use="optional" type="xs:string" />
+	</xs:complexType>
+
+	<xs:complexType name="feedbacks">
+		<xs:sequence>
+			<xs:element name="feedback" minOccurs="0" maxOccurs="unbounded"
+				type="feedback" />
+		</xs:sequence>
+	</xs:complexType>
+
+
+	<xs:complexType name="feedback">
+		<xs:sequence>
+		    <!-- title is plain text. Multiple consecutive whitespaces might be collapsed to single spaces.
+                 This title does not replace the "displaytitle" of the grading-hints, but
+                 it can be used e. g. to output different sub-titles for teacher or student feedback,
+                 for info or error feedback, etc. -->
+			<xs:element name="title" minOccurs="0" type="xs:string" />
+			<!-- title and content are meant to be presented to teachers and students by the LMS 
+			     as immediately readable text. Images may be embedded as data uri into content. -->
+			<xs:element name="content" minOccurs="0">
+				<xs:complexType>
+					<xs:simpleContent>
+						<xs:extension base="xs:string">
+							<xs:attribute name="format" use="required">
+								<xs:simpleType>
+									<xs:restriction base="xs:string">
+										<xs:enumeration value="html" />
+										<xs:enumeration value="plaintext" />  <!-- content includes preformatted whitespace -->
+									</xs:restriction>
+								</xs:simpleType>
+							</xs:attribute>
+							<xs:attribute name="base64" use="optional" type="xs:boolean" default="false" />
+						</xs:extension>
+					</xs:simpleContent>
+
+				</xs:complexType>
+			</xs:element>
+			<!-- filerefs are meant to be presented to teachers and students by the LMS as
+			     clickable hyperlinks. Clicking triggers downloading the respective file.
+			     If the backend includes HTML-content or images as attachments, the LMS should also 
+			     present such attachments as clickable links. -->
+			<xs:element name="filerefs" minOccurs="0" type="filerefs" />
+			<!-- filerefs von test nach feedback geschoben, damit bei "merged-test-feedbacks" 
+				 ebenfalls attachments refenziert werden können -->
+		</xs:sequence>
+
+
+		<xs:attribute name="title" type="xs:string" />  <!-- title ist schon als Element drin. Attribut muss raus, oder? -->
+		<xs:attribute name="audience">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="teacher" />
+					<xs:enumeration value="student" />
+					<!-- teacher should see any information which is addressed to students -->
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="level" use="required">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="debug" />
+					<xs:enumeration value="info" />
+					<xs:enumeration value="warn" />
+					<xs:enumeration value="error" />
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="class" use="required">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="error" />  <!-- What is the use case for e. g. class=error and level=info ? -->
+					<xs:enumeration value="failure" />  <!-- What is the difference between error and failure? -->
+					<xs:enumeration value="output" />
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="type" use="required" /> <!-- type stands for? -->
+
+
+	</xs:complexType>
+
+
+	<xs:complexType name="filerefs">
+		<xs:sequence>
+			<xs:element name="fileref" maxOccurs="unbounded" type="fileref" />
+		</xs:sequence>
+	</xs:complexType>
+
+
+	<xs:complexType name="fileref">
+        <!-- A fileref is either a href-URL or an attachment's id. 
+             Probably there is no use case to have both href and refid in a single fileref.
+             So we use xs:choice ... -->
+		<xs:choice>
+			<xs:element name="refid" type="xs:IDREF" />
+			<xs:element name="href" type="xs:string" />
+         <!-- Diskussion: wenn href auf eine beliebige URL zeigen kann, ist dann die Vokabel 
+              "reference to a file" noch gerechtfertigt? 
+              Beispiel: Feedback mit Level=Student enthalte eine URL auf die 
+              Webseite https://en.wikipedia.org/wiki/Spaghetti_code. 
+              Oder eine URL auf einen Webservice oder eine Datenbank. Das sind ja keine Dateien.
+              Sollten "href"s nicht besser von fileref separat aufgelistet werden?
+              So ähnlich wie external-resources im taskxml-Format?
+              -->
+		</xs:choice>
+	    <xs:attribute name="title" use="required" />	    
+	</xs:complexType>
+
+
+	<xs:complexType name="attachments">
+		<xs:sequence>
+			<xs:element name="attachments" minOccurs="0" maxOccurs="unbounded"
+				type="attachment" />
+		</xs:sequence>
+	</xs:complexType>
+
+	
+	<xs:complexType name="attachment">
+        <!-- Like "file"s in the taskxml format, attachments can be embedded or can be attached
+             as a file to the zip-file. The attribute "type" specifies one of the following
+             use cases:
+             
+             | type      | Use Case                | Element Content       |
+             |-----------+-------------------------+-----------------------|
+             | embedded  | for embedding (short)   | embedded file content |
+             |           | plaintext files in XML  |                       |
+             |-----------+-------------------------+-----------------------|
+             | file      | files in ZIP archive    | relative path to      |
+             |           | (supports any arbitrary | the file in the ZIP   |
+             |           | format)                 | archive               |
+
+             By the way: shouldn't we rename "attachment" to "file" like in the taskxml format?
+             -->
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="id" type="xs:ID" use="required"/>
+                <xs:attribute name="name" use="required" />
+		            <!-- name sollte hier gelöscht werden, redundant, da fileref bereits einen 
+			        title hat -->
+				<xs:attribute name="type" default="embedded">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="file"/>
+							<xs:enumeration value="embedded"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:attribute>
+			</xs:extension>
+        </xs:simpleContent>
     </xs:complexType>
-  </xs:element>
-  <xs:element name="grader-engine">
-    <xs:complexType>
-      <xs:attribute name="name" use="required"/>
-      <xs:attribute name="version" use="required"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="result">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element ref="ns1:score"/>
-        <xs:element minOccurs="0" ref="ns1:validity"/>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="score">
-    <xs:simpleType>
-      <xs:restriction base="xs:decimal">
-        <xs:minInclusive value="0.0"/>
-        <xs:maxInclusive value="1.0"/>
-      </xs:restriction>
-    </xs:simpleType>
-  </xs:element>
-  <xs:element name="validity">
-    <xs:simpleType>
-      <xs:restriction base="xs:decimal">
-        <xs:minInclusive value="0.0"/>
-        <xs:maxInclusive value="1.0"/>
-      </xs:restriction>
-    </xs:simpleType>
-  </xs:element>
-  <xs:element name="tests">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="ns1:test"/>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="test">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element ref="ns1:title"/>
-        <xs:element ref="ns1:result"/>
-        <xs:element ref="ns1:feedbacks"/>
-        <xs:element minOccurs="0" ref="ns1:filerefs"/>
-      </xs:sequence>
-      <xs:attribute name="id" use="required" type="xs:string"/>
-      <!-- changed from xs:ID to xs:string. In case of multiple sub-tests (sub-id) we need to use one id > 1 -->
-      <xs:attribute name="sub-id" use="optional" type="xs:string"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="title" type="xs:string"/>
-  <xs:element name="feedbacks">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="ns1:feedback"/>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="feedback">
-    <xs:complexType mixed="true">
-      <xs:attribute name="audience" use="required">
-        <xs:simpleType>
-          <xs:restriction base="xs:string">
-            <xs:pattern value="teacher|student"/>
-            <!-- teacher should see any information which is addressed to students -->
-          </xs:restriction>
-        </xs:simpleType>
-      </xs:attribute>
-      <xs:attribute name="level" use="required">
-        <xs:simpleType>
-          <xs:restriction base="xs:string">
-            <xs:pattern value="debug|info|warn|error"/>
-          </xs:restriction>
-        </xs:simpleType>
-      </xs:attribute>
-      <xs:attribute name="class" use="required">
-        <xs:simpleType>
-          <xs:restriction base="xs:string">
-            <xs:pattern value="error|failure|output"/>
-          </xs:restriction>
-        </xs:simpleType>
-      </xs:attribute>
-      <xs:attribute name="type" use="required"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="filerefs">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="ns1:fileref"/>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="fileref">
-    <xs:complexType>
-      <xs:attribute name="title" use="required"/>
-      <xs:attribute name="audience" use="required">
-        <xs:simpleType>
-          <xs:restriction base="xs:string">
-            <xs:pattern value="teacher|student"/>
-          </xs:restriction>
-        </xs:simpleType>
-      </xs:attribute>
-      <xs:attribute name="refid" type="xs:IDREF"/>
-      <xs:attribute name="href"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="attachments">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="ns1:attachment"/>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="attachment">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element ref="ns1:content"/>
-      </xs:sequence>
-      <xs:attribute name="id" use="required" type="xs:ID"/>
-      <xs:attribute name="type" use="required"/>
-      <xs:attribute name="name" use="required"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="content" type="xs:base64Binary"/>
+
 </xs:schema>
+
+
+
+    
