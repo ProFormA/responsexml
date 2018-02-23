@@ -5,8 +5,6 @@
     <xs:element name="submission-response">
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="overall-result" type="tns:result" />
-
                 <!-- The following choice presents two different structure types
                      for the response format. It is up to the LMS to request the
                      preferred structure type in the submission format.
@@ -61,33 +59,18 @@
             <xs:element name="validity" minOccurs="0" type="tns:validity" />
         </xs:sequence>
 
-        <xs:attribute name="class" default="success">
-            <!-- The attribute 'class' indicates the type of result for a particular test.
-                 The LMS can perform different actions depending on the result class.
-            -->
-
-            <xs:simpleType>
-                <xs:restriction base="xs:string">
-                    <xs:enumeration value="success" />
-                    <!-- 'success' indicates that there were no problems whatsoever with the test result. -->
-
-                    <xs:enumeration value="student-error" />
-                    <!-- 'student-error' indicates that the student made at least one mistake in this
-                         particular test. -->
-                    <!-- Use case example: Display the test's resulting score value in a red color. -->
-
-                    <xs:enumeration value="internal-error" />
-                    <!-- 'internal-error' indicates a system error that should not be attributed to the
-                         student's submission (e. g. a fault with the JUnit test). -->
-                    <!-- Use case example: If a test resulted in an 'internal-error', the LMS would
-                         invalidate the entire submission attempt. Since the fault was not with the student's
-                         submission but with the grader itself, the student should not lose their submission
-                         attempt (if such restrictions are in place). -->
-                    <!-- Another use case: If an internal-error occurs, send an email to the
-                         person/teacher in charge. -->
-                </xs:restriction>
-            </xs:simpleType>
-        </xs:attribute>
+        <xs:attribute name="is-internal-error" type="xs:boolean" default="false" />
+        <!-- 'is-internal-error' indicates a system error that should not be attributed to the
+             student's submission (e. g. a fault with the JUnit test). -->
+        <!-- Use case example 1: If a test resulted in an internal error, the LMS would
+             invalidate the entire submission attempt. Since the fault was not with the student's
+             submission but with the grader/middleware itself, the student should not lose their
+             submission attempt (if such restrictions are in place). -->
+        <!-- Use case example 2: The grader is offline and cannot be reached by the middleware. The
+             middleware responds with a response XML file with 'is-internal-error' set to true and
+             an error feedback describing the error.   -->
+        <!-- Use case example 3: If an internal-error occurs, send an email to the
+             person/teacher in charge. -->
     </xs:complexType>
 
     <xs:simpleType name="score">
@@ -106,7 +89,8 @@
 
     <xs:complexType name="merged-test-feedback">
         <xs:sequence>
-            <xs:element name="student-feedback" type="tns:feedback" />
+            <xs:element name="overall-result" type="tns:result" />
+            <xs:element name="student-feedback" type="tns:feedback" minOccurs="0" />
             <xs:element name="teacher-feedback" type="tns:feedback" minOccurs="0" />
         </xs:sequence>
     </xs:complexType>
@@ -173,7 +157,7 @@
 
     <xs:complexType name="feedback-list">
         <xs:sequence>
-            <xs:element name="student-feedback" minOccurs="1" maxOccurs="unbounded"
+            <xs:element name="student-feedback" minOccurs="0" maxOccurs="unbounded"
                         type="tns:feedback" />
             <xs:element name="teacher-feedback" minOccurs="0" maxOccurs="unbounded"
                         type="tns:feedback" />
@@ -182,7 +166,7 @@
 
     <xs:complexType name="feedback">
         <xs:sequence>
-            <!-- title is plain text. Multiple consecutive whitespaces might be 
+            <!-- title is plain text. Multiple consecutive whitespaces might be
                  presented by the LMS as single spaces.
                  This title does not replace the "displaytitle" of the grading-hints, but
                  it can be used e. g. to output different sub-titles for teacher or student feedback,
@@ -208,8 +192,8 @@
 
                 </xs:complexType>
             </xs:element>
-            <!-- filerefs and externalresourcerefs are meant to be presented to 
-                 teachers and students by the LMS as clickable hyperlinks. 
+            <!-- filerefs and externalresourcerefs are meant to be presented to
+                 teachers and students by the LMS as clickable hyperlinks.
                  Clicking triggers downloading the respective file or navigation
                  to the respective resource.
                  If the backend includes HTML-content or images as files, the LMS should also
@@ -245,10 +229,11 @@
             <xs:extension base="xs:string">
                 <xs:attribute name="id" type="xs:string" use="required"/>
 
-                <xs:attribute name="title" use="optional" />
+                <xs:attribute name="title" use="required" />
                 <xs:attribute name="filename" type="xs:string" use="optional"/>
+                <xs:attribute name="mimetype" type="xs:string" use="optional"/>
 
-                <xs:attribute name="type" default="embedded-plaintext">
+                <xs:attribute name="type" default="embedded-unencoded">
                     <!-- TODO: Should the enumeration in taskxml's file type also contain the
                          same enum values? -->
 
@@ -258,15 +243,14 @@
                                  so we need to be able to embed files as both plaintext and base64
                                  (in case of files that contain binary data) in a response xml file. -->
 
-                            <xs:enumeration value="embedded-plaintext"/>
-                            <!-- For embedding plaintext files in the response XML file.
+                            <xs:enumeration value="embedded-unencoded"/>
+                            <!-- For embedding unencoded files in the response XML file.
                                  The element content is the file's content. -->
 
-                            
                             <xs:enumeration value="embedded-base64"/>
                             <!-- For embedding smaller binary files in the response XML file.
                                  The element content is the file's encoded content. -->
-                            
+
                             <xs:enumeration value="file"/>
                             <!-- For attaching larger binary files in a ZIP archive
                                  (along with the response XML file.)
