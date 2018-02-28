@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-           elementFormDefault="qualified" targetNamespace="urn:proforma:response:v0.4"
-           xmlns:tns="urn:proforma:response:v0.4">
+           elementFormDefault="qualified" targetNamespace="urn:proforma:response:v0.5"
+           xmlns:tns="urn:proforma:response:v0.5">
     <xs:element name="submission-response">
         <xs:complexType>
             <xs:sequence>
@@ -222,43 +222,30 @@
     </xs:complexType>
 
     <xs:complexType name="file">
-        <!-- Like "file"s in the taskxml format, files can be embedded or attached
-             to a ZIP file.
-        -->
+        <xs:choice>
+            <xs:element name="embedded-file" type="tns:embedded-file" />
+            <!-- For embedding files in the response XML file.
+                 The element content is the file's content.
+                 The content can be optionally encoded to base64. -->
+
+            <xs:element name="attached-file" type="xs:string" />
+            <!-- For attaching files to a ZIP archive (along with the
+                 response XML file).
+                 The element content is the relative path to the file
+                 in the ZIP archive. -->
+        </xs:choice>
+        <xs:attribute name="id" type="xs:string" use="required"/>
+        <xs:attribute name="title" type="xs:string" use="required" />
+        <xs:attribute name="mimetype" type="xs:string" use="optional" />
+    </xs:complexType>
+
+    <xs:complexType name="embedded-file">
         <xs:simpleContent>
             <xs:extension base="xs:string">
-                <xs:attribute name="id" type="xs:string" use="required"/>
-
-                <xs:attribute name="title" use="required" />
-                <xs:attribute name="filename" type="xs:string" use="optional"/>
-                <xs:attribute name="mimetype" type="xs:string" use="optional"/>
-
-                <xs:attribute name="type" default="embedded-unencoded">
-                    <!-- TODO: Should the enumeration in taskxml's file type also contain the
-                         same enum values? -->
-
-                    <xs:simpleType>
-                        <xs:restriction base="xs:string">
-                            <!-- An LMS such as Loncapa cannot use ZIP archives for file attachments,
-                                 so we need to be able to embed files as both plaintext and base64
-                                 (in case of files that contain binary data) in a response xml file. -->
-
-                            <xs:enumeration value="embedded-unencoded"/>
-                            <!-- For embedding unencoded files in the response XML file.
-                                 The element content is the file's content. -->
-
-                            <xs:enumeration value="embedded-base64"/>
-                            <!-- For embedding smaller binary files in the response XML file.
-                                 The element content is the file's encoded content. -->
-
-                            <xs:enumeration value="file"/>
-                            <!-- For attaching larger binary files in a ZIP archive
-                                 (along with the response XML file.)
-                                 The element content is the relative path to the file
-                                 in the ZIP archive. -->
-                        </xs:restriction>
-                    </xs:simpleType>
-                </xs:attribute>
+                <xs:attribute name="filename" type="xs:string"
+                              use="required"/>
+                <xs:attribute name="is-base64-encoded" type="xs:boolean"
+                              default="false" />
             </xs:extension>
         </xs:simpleContent>
     </xs:complexType>
