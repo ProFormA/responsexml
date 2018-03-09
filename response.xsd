@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-           elementFormDefault="qualified" targetNamespace="urn:proforma:response:v0.5"
-           xmlns:tns="urn:proforma:response:v0.5">
+           elementFormDefault="qualified" targetNamespace="urn:proforma:response:v0.6"
+           xmlns:tns="urn:proforma:response:v0.6">
     <xs:element name="submission-response">
         <xs:complexType>
             <xs:sequence>
@@ -28,12 +28,7 @@
 
                 <xs:element name="files" type="tns:files" />
 
-                <xs:element name="external-resources" type="tns:external-resources" minOccurs="0"/>
-                <!-- External resources may be used for anything that is not a file
-                     (e. g. URLs to a website or a web service).
-                -->
-
-                <xs:element name="meta-data" type="tns:meta-data"/>
+                <xs:element name="meta-data" type="tns:meta-data" />
                 <!-- The meta-data element holds a namespace for the meta-data of each system
                      (e. g. information about the grader).
                 -->
@@ -44,7 +39,7 @@
     <xs:complexType name="meta-data">
         <xs:sequence>
             <xs:element name="grader-engine" type="tns:grader-engine" />
-            <xs:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+            <xs:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax" />
         </xs:sequence>
     </xs:complexType>
 
@@ -109,8 +104,8 @@
                 <!-- 'tests' contain test-specific test results. -->
 
                 <xs:unique name="testid">
-                    <xs:selector xpath=".//tns:test"/>
-                    <xs:field xpath="@id"/>
+                    <xs:selector xpath=".//tns:test" />
+                    <xs:field xpath="@id" />
                 </xs:unique>
             </xs:element>
         </xs:sequence>
@@ -134,8 +129,8 @@
             <xs:element name="test-result" type="tns:test-result" />
             <xs:element name="subtests" type="tns:subtests">
                 <xs:unique name="subtestid">
-                    <xs:selector xpath=".//tns:subtest"/>
-                    <xs:field xpath="@id"/>
+                    <xs:selector xpath=".//tns:subtest" />
+                    <xs:field xpath="@id" />
                 </xs:unique>
             </xs:element>
         </xs:choice>
@@ -192,14 +187,7 @@
 
                 </xs:complexType>
             </xs:element>
-            <!-- filerefs and externalresourcerefs are meant to be presented to
-                 teachers and students by the LMS as clickable hyperlinks.
-                 Clicking triggers downloading the respective file or navigation
-                 to the respective resource.
-                 If the backend includes HTML-content or images as files, the LMS should also
-                 present such files as clickable links. -->
             <xs:element name="filerefs" type="tns:filerefs" minOccurs="0" />
-            <xs:element name="externalresourcerefs" type="tns:externalresourcerefs" minOccurs="0"/>
         </xs:sequence>
 
         <xs:attribute name="level" use="required">
@@ -234,7 +222,7 @@
                  The element content is the relative path to the file
                  in the ZIP archive. -->
         </xs:choice>
-        <xs:attribute name="id" type="xs:string" use="required"/>
+        <xs:attribute name="id" type="xs:string" use="required" />
         <xs:attribute name="title" type="xs:string" use="required" />
         <xs:attribute name="mimetype" type="xs:string" use="optional" />
     </xs:complexType>
@@ -243,61 +231,20 @@
         <xs:simpleContent>
             <xs:extension base="xs:string">
                 <xs:attribute name="filename" type="xs:string"
-                              use="required"/>
+                              use="required" />
                 <xs:attribute name="is-base64-encoded" type="xs:boolean"
                               default="false" />
             </xs:extension>
         </xs:simpleContent>
     </xs:complexType>
 
-    <xs:complexType name="external-resources">
-        <!-- TODO: The minOccurs constraint should be set on the element external-resource rather than
-             on the sequence, so it is consistent with the 'file' type.
-             (This should be changed in the taskxml format as well.) -->
-        <xs:sequence minOccurs="0" maxOccurs="unbounded">
-            <xs:element name="external-resource" type="tns:external-resource"/>
-        </xs:sequence>
-    </xs:complexType>
-
-    <xs:complexType name="external-resource">
-        <!-- This external-resource is very similar to the external-resource in the taskxml format
-             (except for the description attribute, which is a title here ...) -->
-
-        <xs:attribute name="id" type="xs:string" use="required"/>
-        <xs:attribute name="title" use="optional" />
-        <xs:attribute name="reference" type="xs:string"/>
-        <!-- TODO: Do we need external resources to be extensible, like in taskxml?
-        <xs:sequence>
-            <xs:element name="description" type="tns:description" minOccurs="0"/>
-            <xs:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
-        </xs:sequence>
-        -->
-    </xs:complexType>
-
     <xs:complexType name="filerefs">
         <xs:sequence maxOccurs="unbounded">
-            <xs:element name="fileref" type="tns:fileref"/>
+            <xs:element name="fileref" type="tns:fileref" />
         </xs:sequence>
     </xs:complexType>
 
     <xs:complexType name="fileref">
-        <xs:attribute name="refid" type="xs:string" use="required"/>
-    </xs:complexType>
-
-    <xs:complexType name="externalresourcerefs">
-        <!-- Both filerefs' and externalresourcerefs' type definition have been copied from the taskxml format.
-             Why does externalresourcerefs have a minOccurs set to 0, but filrefs does not? -->
-
-        <!-- TODO: The minOccurs=0 constraint should be removed, it serves no purpose
-             (externalresourcerefs already has a minOccurs=0 constraint in 'feedback').
-             It should be consistent with the 'filerefs' type.
-             (This should be changed in the taskxml format as well.) -->
-        <xs:sequence minOccurs="0" maxOccurs="unbounded">
-            <xs:element name="externalresourceref" type="tns:externalresourceref"/>
-        </xs:sequence>
-    </xs:complexType>
-
-    <xs:complexType name="externalresourceref">
-        <xs:attribute name="refid" type="xs:string" use="required"/>
+        <xs:attribute name="refid" type="xs:string" use="required" />
     </xs:complexType>
 </xs:schema>
